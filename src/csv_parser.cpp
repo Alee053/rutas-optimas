@@ -58,6 +58,9 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath) {
     const char* end = p + buffer.size();
 
     skipHeader(p, end);
+    if (p >= end) {
+        return {};
+    }
 
     std::vector<ParsedNode> nodes;
     nodes.reserve(buffer.size() / 30); // rough estimate: ~30 bytes per row
@@ -67,10 +70,24 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath) {
     double lon = 0.0;
     int field = 0;
     const char* fieldStart = p;
+    const char* lineStart = p;
 
     while (p <= end) {
         char c = (p < end) ? *p : '\n';
         if (c == ',' || c == '\n' || c == '\r') {
+            if ((c == '\n' || c == '\r') && p == lineStart) {
+                if (c == '\r') {
+                    ++p;
+                    if (p < end && *p == '\n') ++p;
+                } else {
+                    ++p;
+                }
+                field = 0;
+                lineStart = p;
+                fieldStart = p;
+                continue;
+            }
+
             if (field == 0) {
                 if (!parseUint32(fieldStart, p, id)) {
                     throw std::runtime_error("Invalid node_id");
@@ -89,16 +106,18 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath) {
                 ++p;
                 if (p < end && *p == '\n') ++p;
                 field = 0;
-                if (p > fieldStart + 2) { // not empty line
+                if (p > lineStart + 2) {
                     nodes.push_back({id, lat, lon});
                 }
+                lineStart = p;
                 fieldStart = p;
             } else if (c == '\n') {
                 ++p;
                 field = 0;
-                if (p > fieldStart + 2) { // not empty line
+                if (p > lineStart + 1) {
                     nodes.push_back({id, lat, lon});
                 }
+                lineStart = p;
                 fieldStart = p;
             } else {
                 ++p;
@@ -118,6 +137,9 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath) {
     const char* end = p + buffer.size();
 
     skipHeader(p, end);
+    if (p >= end) {
+        return {};
+    }
 
     std::vector<ParsedEdge> edges;
     edges.reserve(buffer.size() / 50); // rough estimate: ~50 bytes per row
@@ -131,10 +153,24 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath) {
     uint32_t maxspeed = 0;
     int field = 0;
     const char* fieldStart = p;
+    const char* lineStart = p;
 
     while (p <= end) {
         char c = (p < end) ? *p : '\n';
         if (c == ',' || c == '\n' || c == '\r') {
+            if ((c == '\n' || c == '\r') && p == lineStart) {
+                if (c == '\r') {
+                    ++p;
+                    if (p < end && *p == '\n') ++p;
+                } else {
+                    ++p;
+                }
+                field = 0;
+                lineStart = p;
+                fieldStart = p;
+                continue;
+            }
+
             if (field == 0) {
                 if (!parseUint64(fieldStart, p, osm_id)) {
                     throw std::runtime_error("Invalid osm_id");
@@ -169,16 +205,18 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath) {
                 ++p;
                 if (p < end && *p == '\n') ++p;
                 field = 0;
-                if (p > fieldStart + 2) {
+                if (p > lineStart + 2) {
                     edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
                 }
+                lineStart = p;
                 fieldStart = p;
             } else if (c == '\n') {
                 ++p;
                 field = 0;
-                if (p > fieldStart + 2) {
+                if (p > lineStart + 1) {
                     edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
                 }
+                lineStart = p;
                 fieldStart = p;
             } else {
                 ++p;
