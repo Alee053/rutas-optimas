@@ -105,16 +105,18 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath) {
             if (c == '\r') {
                 ++p;
                 if (p < end && *p == '\n') ++p;
+                int fieldsParsed = field;
                 field = 0;
-                if (p > lineStart + 2) {
+                if (p > lineStart + 2 && fieldsParsed == 3) {
                     nodes.push_back({id, lat, lon});
                 }
                 lineStart = p;
                 fieldStart = p;
             } else if (c == '\n') {
                 ++p;
+                int fieldsParsed = field;
                 field = 0;
-                if (p > lineStart + 1) {
+                if (p > lineStart + 1 && fieldsParsed == 3) {
                     nodes.push_back({id, lat, lon});
                 }
                 lineStart = p;
@@ -204,16 +206,18 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath) {
             if (c == '\r') {
                 ++p;
                 if (p < end && *p == '\n') ++p;
+                int fieldsParsed = field;
                 field = 0;
-                if (p > lineStart + 2) {
+                if (p > lineStart + 2 && fieldsParsed == 7) {
                     edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
                 }
                 lineStart = p;
                 fieldStart = p;
             } else if (c == '\n') {
                 ++p;
+                int fieldsParsed = field;
                 field = 0;
-                if (p > lineStart + 1) {
+                if (p > lineStart + 1 && fieldsParsed == 7) {
                     edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
                 }
                 lineStart = p;
