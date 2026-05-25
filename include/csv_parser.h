@@ -1,5 +1,4 @@
-#ifndef CSV_PARSER_H
-#define CSV_PARSER_H
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -26,5 +25,3 @@ public:
     static std::vector<ParsedNode> loadNodes(const std::string& filepath);
     static std::vector<ParsedEdge> loadEdges(const std::string& filepath);
 };
-
-#endif // CSV_PARSER_H
