@@ -1,5 +1,6 @@
 #include <iostream>
 #include "csv_parser.h"
+#include "graph.h"
 
 int main() {
     try {
@@ -7,20 +8,22 @@ int main() {
         auto edges = CSVParser::loadEdges("data/edges.csv");
 
         std::cout << "Loaded " << nodes.size() << " nodes and "
-                  << edges.size() << " edges." << std::endl;
+                  << edges.size() << " edges from CSV." << std::endl;
 
-        if (!nodes.empty()) {
-            const auto& first = nodes.front();
-            std::cout << "First node: id=" << first.id
-                      << " lat=" << first.lat << " lon=" << first.lon << std::endl;
-        }
+        auto graph = Graph::build(nodes, edges);
+        std::cout << "Graph built: " << graph.nodeCount() << " nodes, "
+                  << graph.edgeCount() << " directed edges." << std::endl;
 
-        if (!edges.empty()) {
-            const auto& first = edges.front();
-            std::cout << "First edge: osm_id=" << first.osm_id
-                      << " from=" << first.from_id << " to=" << first.to_id
-                      << " dist=" << first.distance_m << " fclass=" << first.fclass
-                      << " oneway=" << first.oneway << " maxspeed=" << first.maxspeed << std::endl;
+        if (!graph.adjacency().empty()) {
+            const auto& first_adj = graph.adjacency()[0];
+            std::cout << "Node 0 has " << first_adj.size()
+                      << " outgoing edges." << std::endl;
+            if (!first_adj.empty()) {
+                const auto& e = first_adj[0];
+                std::cout << "First edge from node 0: to=" << e.to
+                          << " dist=" << e.weight << "m time=" << e.time_weight
+                          << "s maxspeed=" << e.maxspeed << std::endl;
+            }
         }
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
