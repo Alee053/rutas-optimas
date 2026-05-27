@@ -49,6 +49,9 @@ public:
 
     double roadDiameter() const;
 
+    // Build MST on the giant component. Returns total weight in kilometers.
+    double minimumSpanningTree() const;
+
 private:
     std::vector<std::vector<Edge>> adj_;
 };

@@ -7,6 +7,25 @@
 #include <limits>
 #include <queue>
 
+namespace {
+struct UnionFind {
+    std::vector<int> parent;
+    explicit UnionFind(size_t n) : parent(n) {
+        for (size_t i = 0; i < n; ++i) parent[i] = static_cast<int>(i);
+    }
+    int find(int x) {
+        if (parent[x] != x) parent[x] = find(parent[x]);
+        return parent[x];
+    }
+    bool unite(int a, int b) {
+        int ra = find(a), rb = find(b);
+        if (ra == rb) return false;
+        parent[ra] = rb;
+        return true;
+    }
+};
+} // namespace
+
 static double inferSpeed(const std::string& fclass) {
     if (fclass == "motorway")      return 100.0;
     if (fclass == "trunk")         return 80.0;
@@ -244,4 +263,62 @@ double Graph::roadDiameter() const {
     }
 
     return diameter;
+}
+
+double Graph::minimumSpanningTree() const {
+    auto comp = weaklyConnectedComponents();
+    size_t n = adj_.size();
+    int giant_idx = static_cast<int>(comp.giant_component_idx);
+
+    struct UndirEdge {
+        uint32_t u, v;
+        double weight;
+        bool operator<(const UndirEdge& other) const {
+            return weight < other.weight;
+        }
+    };
+
+    std::vector<UndirEdge> undir_edges;
+    undir_edges.reserve(n * 2);
+
+    for (uint32_t u = 0; u < n; ++u) {
+        if (comp.component_id[u] != giant_idx) continue;
+        for (const auto& e : adj_[u]) {
+            if (comp.component_id[e.to] != giant_idx) continue;
+            uint32_t a = std::min(u, e.to);
+            uint32_t b = std::max(u, e.to);
+            undir_edges.push_back({a, b, e.weight});
+        }
+    }
+
+    std::sort(undir_edges.begin(), undir_edges.end(), [](const UndirEdge& a, const UndirEdge& b) {
+        if (a.u != b.u) return a.u < b.u;
+        if (a.v != b.v) return a.v < b.v;
+        return a.weight < b.weight;
+    });
+
+    std::vector<UndirEdge> unique_edges;
+    unique_edges.reserve(undir_edges.size());
+    for (const auto& e : undir_edges) {
+        if (unique_edges.empty() ||
+            unique_edges.back().u != e.u ||
+            unique_edges.back().v != e.v) {
+            unique_edges.push_back(e);
+        }
+    }
+
+    UnionFind uf(n);
+    double total = 0.0;
+    size_t edges_used = 0;
+    size_t target_edges = comp.sizes[giant_idx] > 0 ? comp.sizes[giant_idx] - 1 : 0;
+
+    for (const auto& e : unique_edges) {
+        if (uf.unite(static_cast<int>(e.u), static_cast<int>(e.v))) {
+            total += e.weight;
+            ++edges_used;
+            if (edges_used == target_edges) break;
+        }
+    }
+
+    return total / 1000.0;
 }
