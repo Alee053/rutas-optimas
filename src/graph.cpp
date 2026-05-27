@@ -66,6 +66,28 @@ Graph Graph::build(const std::vector<ParsedNode>& nodes,
         }
     }
 
+    // Deduplicate each node's adjacency list in-place to remove parallel edges (e.g. from reverse edges)
+    for (uint32_t u = 0; u <= max_id; ++u) {
+        auto& edges_list = g.adj_[u];
+        if (edges_list.size() <= 1) continue;
+
+        // Sort by destination node, then by distance_m (weight)
+        std::sort(edges_list.begin(), edges_list.end(), [](const Edge& a, const Edge& b) {
+            if (a.to != b.to) return a.to < b.to;
+            return a.weight < b.weight;
+        });
+
+        // Unique in-place: keep only the first (shortest) edge to each unique destination
+        auto write_it = edges_list.begin();
+        for (auto read_it = edges_list.begin() + 1; read_it != edges_list.end(); ++read_it) {
+            if (read_it->to != write_it->to) {
+                ++write_it;
+                *write_it = *read_it;
+            }
+        }
+        edges_list.erase(write_it + 1, edges_list.end());
+    }
+
     return g;
 }
 
