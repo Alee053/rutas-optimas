@@ -19,6 +19,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 file(GLOB GRAPH_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 file(GLOB GRAPH_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 
-add_executable(${PROJECT_NAME} ${GRAPH_SOURCES} ${GRAPH_HEADERS})
+add_executable(${PROJECT_NAME} ${GRAPH_SOURCES} ${GRAPH_HEADERS}
+        src/csv_parser.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)

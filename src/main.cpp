@@ -4,8 +4,8 @@
 
 int main() {
     try {
-        auto nodes = CSVParser::loadNodes("data/nodes.csv");
-        auto edges = CSVParser::loadEdges("data/edges.csv");
+        auto nodes = CSVParser::loadNodes("../data/nodes.csv");
+        auto edges = CSVParser::loadEdges("../data/edges.csv");
 
         std::cout << "Loaded " << nodes.size() << " nodes and "
                   << edges.size() << " edges from CSV." << std::endl;
