@@ -47,6 +47,8 @@ public:
 
     ComponentInfo weaklyConnectedComponents() const;
 
+    double roadDiameter() const;
+
 private:
     std::vector<std::vector<Edge>> adj_;
 };

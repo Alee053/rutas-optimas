@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <queue>
 
@@ -202,4 +203,45 @@ ComponentInfo Graph::weaklyConnectedComponents() const {
     }
 
     return info;
+}
+
+double Graph::roadDiameter() const {
+    auto comp = weaklyConnectedComponents();
+    size_t n = adj_.size();
+
+    uint32_t start = 0;
+    bool found = false;
+    int giant_idx = static_cast<int>(comp.giant_component_idx);
+    for (uint32_t u = 0; u < n; ++u) {
+        if (comp.component_id[u] == giant_idx) {
+            start = u;
+            found = true;
+            break;
+        }
+    }
+    if (!found) return 0.0;
+
+    auto dist1 = dijkstra(start, -1.0, false, nullptr);
+    uint32_t u = start;
+    double max_dist = 0.0;
+    for (uint32_t v = 0; v < n; ++v) {
+        if (comp.component_id[v] == giant_idx && std::isfinite(dist1[v])) {
+            if (dist1[v] > max_dist) {
+                max_dist = dist1[v];
+                u = v;
+            }
+        }
+    }
+
+    auto dist2 = dijkstra(u, -1.0, false, nullptr);
+    double diameter = 0.0;
+    for (uint32_t v = 0; v < n; ++v) {
+        if (comp.component_id[v] == giant_idx && std::isfinite(dist2[v])) {
+            if (dist2[v] > diameter) {
+                diameter = dist2[v];
+            }
+        }
+    }
+
+    return diameter;
 }
