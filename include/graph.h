@@ -52,6 +52,9 @@ public:
     // Build MST on the giant component. Returns total weight in kilometers.
     double minimumSpanningTree() const;
 
+    // Compare shortest path by distance vs. by time between src and dst.
+    void compareRoutes(uint32_t src, uint32_t dst) const;
+
 private:
     std::vector<std::vector<Edge>> adj_;
 };

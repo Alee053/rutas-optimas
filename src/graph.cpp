@@ -6,6 +6,10 @@
 #include <cmath>
 #include <limits>
 #include <queue>
+#include <unordered_set>
+#include <chrono>
+#include <iostream>
+#include <iomanip>
 
 namespace {
 struct UnionFind {
@@ -321,4 +325,88 @@ double Graph::minimumSpanningTree() const {
     }
 
     return total / 1000.0;
+}
+
+void Graph::compareRoutes(uint32_t src, uint32_t dst) const {
+    if (!hasNode(src) || !hasNode(dst)) {
+        std::cout << "Invalid node ID(s)." << std::endl;
+        return;
+    }
+
+    auto start = std::chrono::steady_clock::now();
+
+    std::vector<uint32_t> prev_d;
+    auto dist_d = dijkstra(src, -1.0, false, &prev_d);
+
+    std::vector<uint32_t> prev_t;
+    auto dist_t = dijkstra(src, -1.0, true, &prev_t);
+
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    auto reconstruct = [](const std::vector<uint32_t>& prev, uint32_t s, uint32_t t) {
+        std::vector<uint32_t> path;
+        if (prev.empty() || prev[t] == std::numeric_limits<uint32_t>::max()) {
+            return path;
+        }
+        uint32_t cur = t;
+        while (cur != s) {
+            path.push_back(cur);
+            cur = prev[cur];
+        }
+        path.push_back(s);
+        std::reverse(path.begin(), path.end());
+        return path;
+    };
+
+    auto path_d = reconstruct(prev_d, src, dst);
+    auto path_t = reconstruct(prev_t, src, dst);
+
+    auto pathMetric = [&](const std::vector<uint32_t>& path, bool use_time) -> double {
+        double total = 0.0;
+        for (size_t i = 0; i + 1 < path.size(); ++i) {
+            uint32_t u = path[i];
+            uint32_t v = path[i + 1];
+            bool found = false;
+            for (const auto& e : adj_[u]) {
+                if (e.to == v) {
+                    total += use_time ? e.time_weight : e.weight;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return std::numeric_limits<double>::infinity();
+        }
+        return total;
+    };
+
+    double total_time_d = pathMetric(path_d, true);
+    double total_dist_t = pathMetric(path_t, false);
+
+    std::unordered_set<uint32_t> nodes_d(path_d.begin(), path_d.end());
+    size_t overlap = 0;
+    for (uint32_t node : path_t) {
+        if (nodes_d.count(node)) ++overlap;
+    }
+
+    std::cout << "\n--- Distance-optimal route ---\n";
+    if (path_d.empty()) {
+        std::cout << "No path found.\n";
+    } else {
+        std::cout << "Distance: " << std::fixed << std::setprecision(2) << dist_d[dst] << " m\n";
+        std::cout << "Time: " << std::fixed << std::setprecision(2) << total_time_d << " s\n";
+        std::cout << "Edges: " << (path_d.size() - 1) << "\n";
+    }
+
+    std::cout << "\n--- Time-optimal route ---\n";
+    if (path_t.empty()) {
+        std::cout << "No path found.\n";
+    } else {
+        std::cout << "Distance: " << std::fixed << std::setprecision(2) << total_dist_t << " m\n";
+        std::cout << "Time: " << std::fixed << std::setprecision(2) << dist_t[dst] << " s\n";
+        std::cout << "Edges: " << (path_t.size() - 1) << "\n";
+    }
+
+    std::cout << "\nOverlap (shared nodes): " << overlap << "\n";
+    std::cout << "Total computation time: " << ms << " ms\n";
 }
