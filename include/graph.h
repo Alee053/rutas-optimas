@@ -36,6 +36,9 @@ public:
                                  bool use_time = false,
                                  std::vector<uint32_t>* predecessor = nullptr) const;
 
+    // Count nodes reachable within max_dist_m street distance from source.
+    size_t vehicleReach(uint32_t source, double max_dist_m = 5000.0) const;
+
 private:
     std::vector<std::vector<Edge>> adj_;
 };

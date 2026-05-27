@@ -141,3 +141,14 @@ std::vector<double> Graph::dijkstra(uint32_t source,
     }
     return dist;
 }
+
+size_t Graph::vehicleReach(uint32_t source, double max_dist_m) const {
+    auto dist = dijkstra(source, max_dist_m, false, nullptr);
+    size_t count = 0;
+    for (double d : dist) {
+        if (d <= max_dist_m) {
+            ++count;
+        }
+    }
+    return count;
+}
