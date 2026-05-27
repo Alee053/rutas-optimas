@@ -1,7 +1,20 @@
 #include <iostream>
 #include <iomanip>
+#include <limits>
+#include <chrono>
 #include "csv_parser.h"
 #include "graph.h"
+
+static void printMenu() {
+    std::cout << "\n=== Bolivia Road Network Analysis ===\n"
+              << "1. Vehicle Reach              — count nodes within 5 km of a source\n"
+              << "2. Connected Components       — giant component size & island count\n"
+              << "3. Road Diameter              — estimated farthest pair (multi-sweep)\n"
+              << "4. Emergency MST              — minimum spanning tree distance (km)\n"
+              << "5. Distance vs. Time Route    — compare two shortest paths\n"
+              << "6. Exit\n"
+              << "Choice: ";
+}
 
 int main() {
     try {
@@ -14,7 +27,7 @@ int main() {
 
         std::cout << "Loading nodes..." << std::endl;
         auto nodes = CSVParser::loadNodes("../data/nodes.csv", options, stats);
-        
+
         std::cout << "Loading edges..." << std::endl;
         auto edges = CSVParser::loadEdges("../data/edges.csv", nodes, options, stats);
 
@@ -42,25 +55,93 @@ int main() {
         std::cout << "Graph built: " << graph.nodeCount() << " nodes, "
                   << graph.edgeCount() << " directed edges." << std::endl;
 
-        if (graph.nodeCount() > 0) {
-            // Find a node that actually has outgoing edges to display as a test
-            size_t sample_node = 0;
-            for (size_t i = 0; i < graph.nodeCount(); ++i) {
-                if (!graph.adjacency()[i].empty()) {
-                    sample_node = i;
+        int choice = 0;
+        do {
+            printMenu();
+            if (!(std::cin >> choice)) {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Invalid input.\n";
+                continue;
+            }
+
+            switch (choice) {
+                case 1: {
+                    std::cout << "Enter source node ID: ";
+                    uint32_t src;
+                    if (std::cin >> src && graph.hasNode(src)) {
+                        auto t0 = std::chrono::steady_clock::now();
+                        size_t reach = graph.vehicleReach(src);
+                        auto t1 = std::chrono::steady_clock::now();
+                        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                        std::cout << "Nodes reachable within 5 km: " << reach
+                                  << " (time: " << ms << " ms)\n";
+                    } else {
+                        std::cout << "Invalid node ID.\n";
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
                     break;
                 }
+                case 2: {
+                    auto t0 = std::chrono::steady_clock::now();
+                    auto comp = graph.weaklyConnectedComponents();
+                    auto t1 = std::chrono::steady_clock::now();
+                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    std::cout << "Number of islands (components): " << comp.sizes.size() << "\n";
+                    std::cout << "Giant component size: " << comp.sizes[comp.giant_component_idx]
+                              << " nodes\n";
+                    std::cout << "Time: " << ms << " ms\n";
+                    break;
+                }
+                case 3: {
+                    auto t0 = std::chrono::steady_clock::now();
+                    double diam = graph.roadDiameter();
+                    auto t1 = std::chrono::steady_clock::now();
+                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    std::cout << "Estimated road diameter: " << std::fixed << std::setprecision(2)
+                              << diam << " m\n";
+                    std::cout << "Time: " << ms << " ms\n";
+                    break;
+                }
+                case 4: {
+                    auto t0 = std::chrono::steady_clock::now();
+                    double mst_km = graph.minimumSpanningTree();
+                    auto t1 = std::chrono::steady_clock::now();
+                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    std::cout << "MST total distance: " << std::fixed << std::setprecision(2)
+                              << mst_km << " km\n";
+                    std::cout << "Time: " << ms << " ms\n";
+                    break;
+                }
+                case 5: {
+                    std::cout << "Enter source node ID: ";
+                    uint32_t src;
+                    if (!(std::cin >> src) || !graph.hasNode(src)) {
+                        std::cout << "Invalid source node ID.\n";
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        break;
+                    }
+                    std::cout << "Enter destination node ID: ";
+                    uint32_t dst;
+                    if (!(std::cin >> dst) || !graph.hasNode(dst)) {
+                        std::cout << "Invalid destination node ID.\n";
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        break;
+                    }
+                    graph.compareRoutes(src, dst);
+                    break;
+                }
+                case 6:
+                    std::cout << "Goodbye.\n";
+                    break;
+                default:
+                    std::cout << "Invalid choice.\n";
             }
-            const auto& adj_list = graph.adjacency()[sample_node];
-            std::cout << "Node " << sample_node << " has " << adj_list.size()
-                      << " outgoing edges." << std::endl;
-            if (!adj_list.empty()) {
-                const auto& e = adj_list[0];
-                std::cout << "First edge from node " << sample_node << ": to=" << e.to
-                          << " dist=" << e.weight << "m time=" << e.time_weight
-                          << "s maxspeed=" << e.maxspeed << std::endl;
-            }
-        }
+        } while (choice != 6);
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
