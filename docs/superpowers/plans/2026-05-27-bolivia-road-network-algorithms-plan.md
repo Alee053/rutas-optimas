@@ -193,7 +193,7 @@ Add after `vehicleReach`:
 ComponentInfo Graph::weaklyConnectedComponents() const {
     ComponentInfo info;
     size_t n = adj_.size();
-    info.component_id.assign(static_cast<int>(n), -1);
+    info.component_id.assign(n, -1);
     std::vector<char> visited(n, 0);
 
     // Build reverse adjacency for undirected traversal
