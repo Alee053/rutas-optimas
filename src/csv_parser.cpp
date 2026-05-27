@@ -28,12 +28,12 @@ static inline void skipHeader(const char*& p, const char* end) {
     if (p < end) ++p; // skip '\n'
 }
 
-static inline bool parseUint32(const char* begin, const char* end, uint32_t& out) {
+static inline bool parseInt(const char* begin, const char* end, int& out) {
     std::from_chars_result res = std::from_chars(begin, end, out);
     return res.ec == std::errc{} && res.ptr == end;
 }
 
-static inline bool parseUint64(const char* begin, const char* end, uint64_t& out) {
+static inline bool parseLongLong(const char* begin, const char* end, long long& out) {
     std::from_chars_result res = std::from_chars(begin, end, out);
     return res.ec == std::errc{} && res.ptr == end;
 }
@@ -73,11 +73,11 @@ static inline bool parseOneway(const char* begin, const char* end) {
     return false;
 }
 
-static inline uint32_t parseMaxSpeed(const char* begin, const char* end) {
+static inline int parseMaxSpeed(const char* begin, const char* end) {
     while (begin < end && (*begin == ' ' || *begin == '\t')) ++begin;
     if (begin == end) return 0;
     
-    uint32_t val = 0;
+    int val = 0;
     bool has_digits = false;
     while (begin < end && *begin >= '0' && *begin <= '9') {
         val = val * 10 + (*begin - '0');
@@ -115,7 +115,7 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath,
     std::vector<ParsedNode> nodes;
     nodes.reserve(buffer.size() / 30); // rough estimate: ~30 bytes per row
 
-    uint32_t id = 0;
+    int id = 0;
     double lat = 0.0;
     double lon = 0.0;
     int field = 0;
@@ -142,7 +142,7 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath,
 
             if (line_valid) {
                 if (field == 0) {
-                    if (!parseUint32(fieldStart, p, id)) {
+                    if (!parseInt(fieldStart, p, id)) {
                         line_valid = false;
                         stats.malformed_nodes_skipped++;
                     }
@@ -212,14 +212,14 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath,
     return nodes;
 }
 
-static void processParsedEdge(uint64_t osm_id, uint32_t from_id, uint32_t to_id, double distance_m,
-                              const std::string& fclass, bool oneway, uint32_t maxspeed,
+static void processParsedEdge(long long osm_id, int from_id, int to_id, double distance_m,
+                              const std::string& fclass, bool oneway, int maxspeed,
                               std::vector<ParsedEdge>& edges, const std::vector<bool>& valid_nodes,
                               const CleansingOptions& options, ParsingStats& stats,
-                              std::unordered_map<uint64_t, size_t>& edge_map) {
+                              std::unordered_map<long long, long long>& edge_map) {
     // 1. Validate node references
-    if (from_id >= valid_nodes.size() || !valid_nodes[from_id] ||
-        to_id >= valid_nodes.size() || !valid_nodes[to_id]) {
+    if (from_id < 0 || from_id >= static_cast<int>(valid_nodes.size()) || !valid_nodes[from_id] ||
+        to_id < 0 || to_id >= static_cast<int>(valid_nodes.size()) || !valid_nodes[to_id]) {
         stats.invalid_node_refs_filtered++;
         return;
     }
@@ -247,16 +247,16 @@ static void processParsedEdge(uint64_t osm_id, uint32_t from_id, uint32_t to_id,
 
     // 5. Deduplicate parallel edges
     if (options.deduplicate_edges) {
-        uint64_t key = (static_cast<uint64_t>(from_id) << 32) | to_id;
+        long long key = (static_cast<long long>(from_id) << 32) | (static_cast<long long>(to_id) & 0xFFFFFFFFULL);
         auto it = edge_map.find(key);
         if (it != edge_map.end()) {
-            size_t idx = it->second;
+            long long idx = it->second;
             if (distance_m < edges[idx].distance_m) {
                 edges[idx] = {osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed};
             }
             stats.duplicate_edges_filtered++;
         } else {
-            edge_map[key] = edges.size();
+            edge_map[key] = static_cast<long long>(edges.size());
             edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
             stats.valid_edges_kept++;
         }
@@ -271,15 +271,17 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath,
                                              const CleansingOptions& options,
                                              ParsingStats& stats) {
     // Build quick lookup table for valid node IDs
-    uint32_t max_node_id = 0;
+    int max_node_id = 0;
     for (const auto& n : loaded_nodes) {
         if (n.id > max_node_id) {
             max_node_id = n.id;
         }
     }
-    std::vector<bool> valid_nodes(max_node_id + 1, false);
+    std::vector<bool> valid_nodes(static_cast<size_t>(max_node_id) + 1, false);
     for (const auto& n : loaded_nodes) {
-        valid_nodes[n.id] = true;
+        if (n.id >= 0) {
+            valid_nodes[n.id] = true;
+        }
     }
 
     std::string buffer = readFile(filepath);
@@ -294,15 +296,15 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath,
     std::vector<ParsedEdge> edges;
     edges.reserve(buffer.size() / 50); // rough estimate: ~50 bytes per row
 
-    std::unordered_map<uint64_t, size_t> edge_map;
+    std::unordered_map<long long, long long> edge_map;
 
-    uint64_t osm_id = 0;
-    uint32_t from_id = 0;
-    uint32_t to_id = 0;
+    long long osm_id = 0;
+    int from_id = 0;
+    int to_id = 0;
     double distance_m = 0.0;
     std::string fclass;
     bool oneway = false;
-    uint32_t maxspeed = 0;
+    int maxspeed = 0;
     int field = 0;
     const char* fieldStart = p;
     const char* lineStart = p;
@@ -327,17 +329,17 @@ std::vector<ParsedEdge> CSVParser::loadEdges(const std::string& filepath,
 
             if (line_valid) {
                 if (field == 0) {
-                    if (!parseUint64(fieldStart, p, osm_id)) {
+                    if (!parseLongLong(fieldStart, p, osm_id)) {
                         line_valid = false;
                         stats.malformed_edges_skipped++;
                     }
                 } else if (field == 1) {
-                    if (!parseUint32(fieldStart, p, from_id)) {
+                    if (!parseInt(fieldStart, p, from_id)) {
                         line_valid = false;
                         stats.malformed_edges_skipped++;
                     }
                 } else if (field == 2) {
-                    if (!parseUint32(fieldStart, p, to_id)) {
+                    if (!parseInt(fieldStart, p, to_id)) {
                         line_valid = false;
                         stats.malformed_edges_skipped++;
                     }

@@ -5,19 +5,19 @@
 #include <vector>
 
 struct ParsedNode {
-    uint32_t id;
-    double   lat;
-    double   lon;
+    int    id;
+    double lat;
+    double lon;
 };
 
 struct ParsedEdge {
-    uint64_t    osm_id;
-    uint32_t    from_id;
-    uint32_t    to_id;
-    double      distance_m;
+    long long osm_id;
+    int       from_id;
+    int       to_id;
+    double    distance_m;
     std::string fclass;
-    bool        oneway;
-    uint32_t    maxspeed;
+    bool      oneway;
+    int       maxspeed;
 };
 
 struct CleansingOptions {
@@ -27,18 +27,18 @@ struct CleansingOptions {
 };
 
 struct ParsingStats {
-    size_t total_nodes_read = 0;
-    size_t valid_nodes_kept = 0;
-    size_t malformed_nodes_skipped = 0;
-    size_t out_of_bounds_nodes_skipped = 0;
+    long long total_nodes_read = 0;
+    long long valid_nodes_kept = 0;
+    long long malformed_nodes_skipped = 0;
+    long long out_of_bounds_nodes_skipped = 0;
 
-    size_t total_edges_read = 0;
-    size_t valid_edges_kept = 0;
-    size_t malformed_edges_skipped = 0;
-    size_t self_loops_removed = 0;
-    size_t duplicate_edges_filtered = 0;
-    size_t non_drivable_edges_filtered = 0;
-    size_t invalid_node_refs_filtered = 0;
+    long long total_edges_read = 0;
+    long long valid_edges_kept = 0;
+    long long malformed_edges_skipped = 0;
+    long long self_loops_removed = 0;
+    long long duplicate_edges_filtered = 0;
+    long long non_drivable_edges_filtered = 0;
+    long long invalid_node_refs_filtered = 0;
 };
 
 class CSVParser {

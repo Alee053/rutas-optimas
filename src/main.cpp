@@ -68,10 +68,10 @@ int main() {
             switch (choice) {
                 case 1: {
                     std::cout << "Enter source node ID: ";
-                    uint32_t src;
+                    int src;
                     if (std::cin >> src && graph.hasNode(src)) {
                         auto t0 = std::chrono::steady_clock::now();
-                        size_t reach = graph.vehicleReach(src);
+                        long long reach = graph.vehicleReach(src);
                         auto t1 = std::chrono::steady_clock::now();
                         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
                         std::cout << "Nodes reachable within 5 km: " << reach
@@ -89,7 +89,7 @@ int main() {
                     auto t1 = std::chrono::steady_clock::now();
                     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
                     std::cout << "Number of islands (components): " << comp.sizes.size() << "\n";
-                    std::cout << "Giant component size: " << comp.sizes[comp.giant_component_idx]
+                    std::cout << "Giant component size: " << comp.sizes[static_cast<size_t>(comp.giant_component_idx)]
                               << " nodes\n";
                     std::cout << "Time: " << ms << " ms\n";
                     break;
@@ -116,7 +116,7 @@ int main() {
                 }
                 case 5: {
                     std::cout << "Enter source node ID: ";
-                    uint32_t src;
+                    int src;
                     if (!(std::cin >> src) || !graph.hasNode(src)) {
                         std::cout << "Invalid source node ID.\n";
                         std::cin.clear();
@@ -124,7 +124,7 @@ int main() {
                         break;
                     }
                     std::cout << "Enter destination node ID: ";
-                    uint32_t dst;
+                    int dst;
                     if (!(std::cin >> dst) || !graph.hasNode(dst)) {
                         std::cout << "Invalid destination node ID.\n";
                         std::cin.clear();
