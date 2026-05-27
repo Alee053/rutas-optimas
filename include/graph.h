@@ -18,6 +18,12 @@ struct Edge {
     bool     oneway;    // original oneway flag
 };
 
+struct ComponentInfo {
+    std::vector<int> component_id;
+    std::vector<size_t> sizes;
+    size_t giant_component_idx = 0;
+};
+
 class Graph {
 public:
     static Graph build(const std::vector<ParsedNode>& nodes,
@@ -38,6 +44,8 @@ public:
 
     // Count nodes reachable within max_dist_m street distance from source.
     size_t vehicleReach(uint32_t source, double max_dist_m = 5000.0) const;
+
+    ComponentInfo weaklyConnectedComponents() const;
 
 private:
     std::vector<std::vector<Edge>> adj_;

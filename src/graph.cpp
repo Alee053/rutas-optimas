@@ -152,3 +152,54 @@ size_t Graph::vehicleReach(uint32_t source, double max_dist_m) const {
     }
     return count;
 }
+
+ComponentInfo Graph::weaklyConnectedComponents() const {
+    ComponentInfo info;
+    size_t n = adj_.size();
+    info.component_id.assign(n, -1);
+    std::vector<char> visited(n, 0);
+
+    std::vector<std::vector<uint32_t>> rev(n);
+    for (uint32_t u = 0; u < n; ++u) {
+        for (const auto& e : adj_[u]) {
+            rev[e.to].push_back(u);
+        }
+    }
+
+    for (uint32_t start = 0; start < n; ++start) {
+        if (visited[start]) continue;
+
+        std::vector<uint32_t> stack;
+        stack.push_back(start);
+        visited[start] = 1;
+        size_t comp_size = 0;
+        int comp_idx = static_cast<int>(info.sizes.size());
+
+        while (!stack.empty()) {
+            uint32_t u = stack.back();
+            stack.pop_back();
+            info.component_id[u] = comp_idx;
+            ++comp_size;
+
+            for (const auto& e : adj_[u]) {
+                if (!visited[e.to]) {
+                    visited[e.to] = 1;
+                    stack.push_back(e.to);
+                }
+            }
+            for (uint32_t v : rev[u]) {
+                if (!visited[v]) {
+                    visited[v] = 1;
+                    stack.push_back(v);
+                }
+            }
+        }
+
+        info.sizes.push_back(comp_size);
+        if (comp_size > info.sizes[info.giant_component_idx]) {
+            info.giant_component_idx = info.sizes.size() - 1;
+        }
+    }
+
+    return info;
+}
