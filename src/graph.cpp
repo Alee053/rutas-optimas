@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <limits>
+#include <queue>
 
 static double inferSpeed(const std::string& fclass) {
     if (fclass == "motorway")      return 100.0;
@@ -97,4 +99,45 @@ size_t Graph::edgeCount() const {
         count += adj_list.size();
     }
     return count;
+}
+
+std::vector<double> Graph::dijkstra(uint32_t source,
+                                    double max_distance,
+                                    bool use_time,
+                                    std::vector<uint32_t>* predecessor) const {
+    const double INF = std::numeric_limits<double>::infinity();
+    size_t n = adj_.size();
+    std::vector<double> dist(n, INF);
+    if (source >= n) {
+        return dist;
+    }
+
+    if (predecessor) {
+        predecessor->assign(n, std::numeric_limits<uint32_t>::max());
+        (*predecessor)[source] = source;
+    }
+
+    dist[source] = 0.0;
+    using P = std::pair<double, uint32_t>;
+    std::priority_queue<P, std::vector<P>, std::greater<P>> pq;
+    pq.emplace(0.0, source);
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+        if (d > dist[u]) continue;
+        if (max_distance >= 0.0 && d > max_distance) continue;
+
+        for (const auto& e : adj_[u]) {
+            double w = use_time ? e.time_weight : e.weight;
+            if (dist[e.to] > d + w) {
+                dist[e.to] = d + w;
+                if (predecessor) {
+                    (*predecessor)[e.to] = u;
+                }
+                pq.emplace(dist[e.to], e.to);
+            }
+        }
+    }
+    return dist;
 }
