@@ -1,0 +1,155 @@
+Rutas Óptimas en Red Vial
+Urbana
+Dataset: OpenStreetMap/Geofabrik — Bolivia Road Network
+Descripción y Reglas del Proyecto
+Trabajo en grupos de 2. Ambos integrantes deben dominar limpieza de datos,
+modelado de red vial y algoritmos de caminos más cortos.
+Evaluación
+Informe + código fuente: 20%.
+Defensa individual: 80%.
+Uso de IA: penalizable sin dominio real.
+Entrega: informe y código en fecha.
+Especificaciones
+bolivia-latest-free.shp.zip
+bolivia-latest.osm.pbf
+enriquecer atributos)
+(capas vectoriales de Bolivia, incluyendo red vial)
+(extracto OSM completo de Bolivia, opcional para
+Limpieza: segmentos duplicados, geometrías inválidas, registros sin
+coordenadas válidas, calles desconectadas y atributos faltantes relevantes
+para ponderación (por ejemplo, tipo de vía o velocidad).
+Estructura esperada (red vial desde SHP)
+CampoDescripción
+osm_idIdentificador del elemento vial
+fclassClasificación de vía (motorway, primary, secondary, residential, etc.)
+onewaySentido de circulación (cuando aplique)
+maxspeedVelocidad máxima registrada (si existe)
+geometryGeometría LINESTRING usada para derivar nodos/aristas y longitudes
+Estructura esperada (extracto OSM .pbf , opcional)
+Rutas Óptimas en Red Vial Urbana
+1CampoDescripción
+nodeIntersección con latitud/longitud
+waySecuencia de nodos que representa una calle
+tagsAtributos como highway , name , maxspeed , oneway
+Fuente del dataset
+https://download.geofabrik.de/south-america/bolivia-latest-free.shp.zip
+https://download.geofabrik.de/south-america/bolivia-latest.osm.pbf
+Página principal: https://download.geofabrik.de/south-america/bolivia.html
+Detalles del dataset
+Tipo: red vial urbana dirigida (intersecciones como nodos, segmentos de
+calle como aristas ponderadas).
+Cobertura geográfica: Bolivia (nivel país), con posibilidad de filtrar por
+ciudad o departamento para pruebas controladas.
+Pesos: distancia (derivada de geometría) y tiempo estimado (a partir de
+velocidad declarada o supuesta por tipo de vía).
+El dataset es abierto, descargable por enlace directo y adecuado para
+modelar grafos viales reales.
+Sugerencias para trabajar el dataset
+Extraigan primero la capa vial desde el SHP y normalicen atributos
+( oneway , maxspeed , fclass ).
+Si usan .osm.pbf , documenten claramente el pipeline de extracción (por
+ejemplo, filtro de highway=* ).
+Definan un subgrafo de muestra (por ejemplo, una ciudad principal) para
+validar implementación antes de ejecutar sobre mayor cobertura.
+Reporten métricas de la componente gigante (número de nodos, aristas,
+grado promedio) vs. el grafo completo filtrado.
+Estandaricen unidades: metros/km para distancia y minutos/segundos para
+tiempo estimado.
+Sugerencia para procesar:
+Rutas Óptimas en Red Vial Urbana
+2# main.py
+# wget https://download.geofabrik.de/south-america/bolivia-
+latest-free.shp.zip
+# unzip bolivia-latest-free.shp.zip -d bolivia_shp/
+# pip install geopandas shapely pyproj pandas
+import geopandas as gpd
+import pandas as pd
+gdf = gpd.read_file("bolivia_shp/gis_osm_roads_free_1.sh
+p").to_crs(epsg=32719)
+nodes, node_id_counter = {}, 0
+edges_rows = []
+def get_or_create_node(coord):
+global node_id_counter
+if coord not in nodes:
+nodes[coord] = node_id_counter
+node_id_counter += 1
+return nodes[coord]
+for _, row in gdf.iterrows():
+geom = row.geometry
+if geom is None or geom.geom_type != "LineString":
+continue
+coords = list(geom.coords)
+from_node = get_or_create_node(coords[0])
+to_node
+= get_or_create_node(coords[-1])
+edges_rows.append({
+"osm_id":
+row.get("osm_id", ""),
+"from_id":
+from_node,
+"to_id":
+to_node,
+"distance_m": round(geom.length, 2),
+"fclass":
+row.get("fclass", ""),
+"oneway":
+1 if str(row.get("oneway", "B")) ==
+"T" else 0,
+"maxspeed":
+Rutas Óptimas en Red Vial Urbana
+row.get("maxspeed", ""),
+3})
+nodes_rows = [{"node_id": nid, "lat": c[1], "lon": c[0]} fo
+r c, nid in nodes.items()]
+pd.DataFrame(nodes_rows).to_csv("nodes.csv", index=False)
+pd.DataFrame(edges_rows).to_csv("edges.csv", index=False)
+print(f"Nodos: {len(nodes_rows)}, Aristas: {len(edges_row
+s)}")
+Output
+> python3 main.py
+Nodos: 886790, Aristas: 588485
+nodes.csv
+node_id,lat,lon
+edges.csv
+osm_id,from_id,to_id,distance_m,fclass,oneway,maxspeed
+oneway
+: 1/0 , true/false , yes/no .
+maxspeed
+: admite formatos como 50 , 50 km/h o vacío.
+Objetivos
+Alcance vehicular. Dado un nodo origen, calcular cuántos nodos son
+alcanzables en máximo 5 km de distancia de calle (no euclidiana).
+Islas viales. Identificar componentes débilmente conexas, tamaño de la
+componente principal y número total de islas.
+Diámetro vial. Encontrar el par de intersecciones con mayor distancia
+mínima (en metros) dentro de la componente gigante.
+Red de emergencia mínima. Construir el árbol de cobertura mínima (MST)
+sobre la componente gigante y reportar la distancia total cubierta en km.
+Rutas Óptimas en Red Vial Urbana
+4(BONUS): Ruta por tipo de horario. Comparar el camino más corto por
+distancia ( d ) vs. por tiempo de recorrido ( t ) entre un par de nodos y
+analizar diferencias.
+Material a Entregar
+1. Descripción del problema y modelado.
+2. Objetivos.
+3. Desarrollo: limpieza, construcción del grafo, retos y complejidad.
+4. Conclusiones.
+5. Bibliografía y referencias.
+Lineamientos para el uso de Datasets
+Registren tamaño de archivo, fecha de descarga y pasos de
+descompresión/transformación.
+Si aplican filtros por componente o submuestra, documenten los criterios.
+Mantengan trazabilidad con script o pseudocódigo de limpieza.
+Formato del Documento
+Secciones esperadas: Portada, Introducción, Dataset, Formulación
+Algorítmica, Complejidad, Implementación, Resultados, Conclusiones y
+Referencias.
+Incluyan comparación de al menos 2 enfoques o configuraciones de
+análisis (por ejemplo, Dijkstra vs. Bellman-Ford, o distancia vs. tiempo).
+Consejos Generales
+Limpien primero y documenten impacto de filas/aristas descartadas.
+Justifiquen modelado (dirigido/no dirigido, pesos, restricciones).
+Midan tiempos reales y comparen resultados por escenario (distancia vs.
+tiempo).
+Rutas Óptimas en Red Vial Urbana
+5
