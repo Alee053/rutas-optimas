@@ -212,6 +212,31 @@ std::vector<ParsedNode> CSVParser::loadNodes(const std::string& filepath,
     return nodes;
 }
 
+static void addDirectedEdge(long long osm_id, int from_id, int to_id, double distance_m,
+                            const std::string& fclass, bool oneway, int maxspeed,
+                            std::vector<ParsedEdge>& edges,
+                            const CleansingOptions& options, ParsingStats& stats,
+                            std::unordered_map<long long, long long>& edge_map) {
+    if (options.deduplicate_edges) {
+        long long key = (static_cast<long long>(from_id) << 32) | (static_cast<long long>(to_id) & 0xFFFFFFFFULL);
+        auto it = edge_map.find(key);
+        if (it != edge_map.end()) {
+            long long idx = it->second;
+            if (distance_m < edges[idx].distance_m) {
+                edges[idx] = {osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed};
+            }
+            stats.duplicate_edges_filtered++;
+        } else {
+            edge_map[key] = static_cast<long long>(edges.size());
+            edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
+            stats.valid_edges_kept++;
+        }
+    } else {
+        edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
+        stats.valid_edges_kept++;
+    }
+}
+
 static void processParsedEdge(long long osm_id, int from_id, int to_id, double distance_m,
                               const std::string& fclass, bool oneway, int maxspeed,
                               std::vector<ParsedEdge>& edges, const std::vector<bool>& valid_nodes,
@@ -245,24 +270,12 @@ static void processParsedEdge(long long osm_id, int from_id, int to_id, double d
         }
     }
 
-    // 5. Deduplicate parallel edges
-    if (options.deduplicate_edges) {
-        long long key = (static_cast<long long>(from_id) << 32) | (static_cast<long long>(to_id) & 0xFFFFFFFFULL);
-        auto it = edge_map.find(key);
-        if (it != edge_map.end()) {
-            long long idx = it->second;
-            if (distance_m < edges[idx].distance_m) {
-                edges[idx] = {osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed};
-            }
-            stats.duplicate_edges_filtered++;
-        } else {
-            edge_map[key] = static_cast<long long>(edges.size());
-            edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
-            stats.valid_edges_kept++;
-        }
-    } else {
-        edges.push_back({osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed});
-        stats.valid_edges_kept++;
+    // 5. Add forward edge
+    addDirectedEdge(osm_id, from_id, to_id, distance_m, fclass, oneway, maxspeed, edges, options, stats, edge_map);
+
+    // 6. Add reverse edge if bidirectional
+    if (!oneway) {
+        addDirectedEdge(osm_id, to_id, from_id, distance_m, fclass, oneway, maxspeed, edges, options, stats, edge_map);
     }
 }
 
