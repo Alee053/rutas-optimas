@@ -29,35 +29,35 @@ int main() {
 
         ParsingStats stats;
 
-        std::cout << "Loading nodes..." << std::endl;
+        std::cout << "Cargando nodos..." << std::endl;
         auto nodes = CSVParser::loadNodes("../data/nodes.csv", options, stats);
 
-        std::cout << "Loading edges..." << std::endl;
+        std::cout << "Cargando aristas..." << std::endl;
         auto edges = CSVParser::loadEdges("../data/edges.csv", nodes, options, stats);
 
-        std::cout << "\n================ DATA CLEANSED STATISTICS ================" << std::endl;
-        std::cout << "NODES:" << std::endl;
-        std::cout << "  Total lines read:                 " << stats.total_nodes_read << std::endl;
-        std::cout << "  Malformed nodes skipped:          " << stats.malformed_nodes_skipped << std::endl;
-        std::cout << "  Out-of-bounds nodes skipped:      " << stats.out_of_bounds_nodes_skipped << std::endl;
-        std::cout << "  Valid nodes kept:                 " << stats.valid_nodes_kept << std::endl;
-        std::cout << "EDGES:" << std::endl;
-        std::cout << "  Total lines read:                 " << stats.total_edges_read << std::endl;
-        std::cout << "  Malformed edges skipped:          " << stats.malformed_edges_skipped << std::endl;
-        std::cout << "  Edges referencing invalid nodes:  " << stats.invalid_node_refs_filtered << std::endl;
-        std::cout << "  Self-loop edges removed:          " << stats.self_loops_removed << std::endl;
-        std::cout << "  Non-drivable path edges filtered: " << stats.non_drivable_edges_filtered << std::endl;
-        std::cout << "  Duplicate edges filtered:         " << stats.duplicate_edges_filtered << std::endl;
-        std::cout << "  Valid edges kept:                 " << stats.valid_edges_kept << std::endl;
+        std::cout << "\n================ ESTADÍSTICAS DE LIMPIEZA DE DATOS ================" << std::endl;
+        std::cout << "NODOS:" << std::endl;
+        std::cout << "  Total de líneas leídas:                   " << stats.total_nodes_read << std::endl;
+        std::cout << "  Nodos malformados omitidos:               " << stats.malformed_nodes_skipped << std::endl;
+        std::cout << "  Nodos fuera de límites omitidos:          " << stats.out_of_bounds_nodes_skipped << std::endl;
+        std::cout << "  Nodos válidos conservados:                " << stats.valid_nodes_kept << std::endl;
+        std::cout << "ARISTAS:" << std::endl;
+        std::cout << "  Total de líneas leídas:                   " << stats.total_edges_read << std::endl;
+        std::cout << "  Aristas malformadas omitidas:             " << stats.malformed_edges_skipped << std::endl;
+        std::cout << "  Aristas con nodos de referencia no válidos: " << stats.invalid_node_refs_filtered << std::endl;
+        std::cout << "  Aristas de bucle propio eliminadas:       " << stats.self_loops_removed << std::endl;
+        std::cout << "  Aristas de vías no transitables filtradas: " << stats.non_drivable_edges_filtered << std::endl;
+        std::cout << "  Aristas duplicadas filtradas:             " << stats.duplicate_edges_filtered << std::endl;
+        std::cout << "  Aristas válidas conservadas:              " << stats.valid_edges_kept << std::endl;
         std::cout << "==========================================================\n" << std::endl;
 
-        std::cout << "Loaded " << nodes.size() << " nodes and "
-                  << edges.size() << " edges from CSV." << std::endl;
+        std::cout << "Se cargaron " << nodes.size() << " nodos y "
+                  << edges.size() << " aristas desde el CSV." << std::endl;
 
-        std::cout << "Building graph..." << std::endl;
+        std::cout << "Construyendo el grafo..." << std::endl;
         auto graph = Graph::build(nodes, edges);
-        std::cout << "Graph built: " << graph.nodeCount() << " nodes, "
-                  << graph.edgeCount() << " directed edges." << std::endl;
+        std::cout << "Grafo construido: " << graph.nodeCount() << " nodos, "
+                  << graph.edgeCount() << " aristas dirigidas." << std::endl;
 
         int choice = 0;
         do {
