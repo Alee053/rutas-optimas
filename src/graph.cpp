@@ -343,7 +343,7 @@ double Graph::minimumSpanningTree() const {
 
 void Graph::compareRoutes(int src, int dst) const {
     if (!hasNode(src) || !hasNode(dst)) {
-        std::cout << "Invalid node ID(s)." << std::endl;
+        std::cout << "ID(s) de nodo no válido(s)." << std::endl;
         return;
     }
     auto start = sc::now();
@@ -402,24 +402,24 @@ void Graph::compareRoutes(int src, int dst) const {
         if (nodes_d.count(node)) ++overlap;
     }
 
-    std::cout << "\n--- Distance-optimal route ---\n";
+    std::cout << "\n--- Ruta óptima por distancia ---\n";
     if (path_d.empty()) {
-        std::cout << "No path found.\n";
+        std::cout << "No se encontró ninguna ruta.\n";
     } else {
-        std::cout << "Distance: " << std::fixed << std::setprecision(2) << dist_d[static_cast<size_t>(dst)] << " m\n";
-        std::cout << "Time: " << std::fixed << std::setprecision(2) << total_time_d << " s\n";
-        std::cout << "Edges: " << (path_d.size() - 1) << "\n";
+        std::cout << "Distancia: " << std::fixed << std::setprecision(2) << dist_d[static_cast<size_t>(dst)] << " m\n";
+        std::cout << "Tiempo: " << std::fixed << std::setprecision(2) << total_time_d << " s\n";
+        std::cout << "Aristas: " << (path_d.size() - 1) << "\n";
     }
 
-    std::cout << "\n--- Time-optimal route ---\n";
+    std::cout << "\n--- Ruta óptima por tiempo ---\n";
     if (path_t.empty()) {
-        std::cout << "No path found.\n";
+        std::cout << "No se encontró ninguna ruta.\n";
     } else {
-        std::cout << "Distance: " << std::fixed << std::setprecision(2) << total_dist_t << " m\n";
-        std::cout << "Time: " << std::fixed << std::setprecision(2) << dist_t[static_cast<size_t>(dst)] << " s\n";
-        std::cout << "Edges: " << (path_t.size() - 1) << "\n";
+        std::cout << "Distancia: " << std::fixed << std::setprecision(2) << total_dist_t << " m\n";
+        std::cout << "Tiempo: " << std::fixed << std::setprecision(2) << dist_t[static_cast<size_t>(dst)] << " s\n";
+        std::cout << "Aristas: " << (path_t.size() - 1) << "\n";
     }
 
-    std::cout << "\nOverlap (shared nodes): " << overlap << "\n";
-    std::cout << "Total computation time: " << ms << " ms\n";
+    std::cout << "\nCoincidencia (nodos compartidos): " << overlap << "\n";
+    std::cout << "Tiempo total de cómputo: " << ms << " ms\n";
 }

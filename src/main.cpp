@@ -10,14 +10,14 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 
 static void printMenu() {
-    std::cout << "\n=== Bolivia Road Network Analysis ===\n"
-              << "1. Vehicle Reach              — count nodes within 5 km of a source\n"
-              << "2. Connected Components       — giant component size & island count\n"
-              << "3. Road Diameter              — estimated farthest pair (multi-sweep)\n"
-              << "4. Emergency MST              — minimum spanning tree distance (km)\n"
-              << "5. Distance vs. Time Route    — compare two shortest paths\n"
-              << "6. Exit\n"
-              << "Choice: ";
+    std::cout << "\n=== Análisis de la Red Vial de Bolivia ===\n"
+              << "1. Alcance de Vehículos        — contar nodos dentro de 5 km de un origen\n"
+              << "2. Componentes Conexas         — tamaño del componente gigante y cantidad de islas\n"
+              << "3. Diámetro Vial               — par más lejano estimado (multi-barrido)\n"
+              << "4. MST de Emergencia           — distancia del árbol de expansión mínima (km)\n"
+              << "5. Ruta de Distancia vs. Tiempo — comparar dos rutas más cortas\n"
+              << "6. Salir\n"
+              << "Opción: ";
 }
 
 int main() {
@@ -65,23 +65,23 @@ int main() {
             if (!(std::cin >> choice)) {
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Invalid input.\n";
+                std::cout << "Entrada no válida.\n";
                 continue;
             }
 
             switch (choice) {
                 case 1: {
-                    std::cout << "Enter source node ID: ";
+                    std::cout << "Ingrese el ID del nodo origen: ";
                     int src;
                     if (std::cin >> src && graph.hasNode(src)) {
                         auto t0 = sc::now();
                         long long reach = graph.vehicleReach(src);
                         auto t1 = sc::now();
                         auto ms = duration_cast<milliseconds>(t1 - t0).count();
-                        std::cout << "Nodes reachable within 5 km: " << reach
-                                  << " (time: " << ms << " ms)\n";
+                        std::cout << "Nodos alcanzables dentro de 5 km: " << reach
+                                  << " (tiempo: " << ms << " ms)\n";
                     } else {
-                        std::cout << "Invalid node ID.\n";
+                        std::cout << "ID de nodo no válido.\n";
                         std::cin.clear();
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     }
@@ -112,15 +112,15 @@ int main() {
                     auto t1 = sc::now();
                     auto ms = duration_cast<milliseconds>(t1 - t0).count();
                     
-                    std::cout << "Number of islands (components): " << comp.sizes.size() << "\n";
-                    std::cout << "Giant component size: " << giant_nodes << " nodes\n";
+                    std::cout << "Cantidad de islas (componentes): " << comp.sizes.size() << "\n";
+                    std::cout << "Tamaño del componente gigante: " << giant_nodes << " nodos\n";
                     std::cout << "----------------------------------------------------------\n";
-                    std::cout << "METRIC COMPARISON (Giant Component vs. Complete Filtered):\n";
+                    std::cout << "COMPARACIÓN DE MÉTRICAS (Componente Gigante vs. Completo Filtrado):\n";
                     std::cout << "  Nodos:          " << giant_nodes << " vs. " << total_nodes << "\n";
                     std::cout << "  Aristas:        " << giant_edges << " vs. " << total_edges << "\n";
                     std::cout << "  Grado promedio: " << std::fixed << std::setprecision(4) << giant_avg_degree << " vs. " << total_avg_degree << "\n";
                     std::cout << "----------------------------------------------------------\n";
-                    std::cout << "Time: " << ms << " ms\n";
+                    std::cout << "Tiempo: " << ms << " ms\n";
                     break;
                 }
                 case 3: {
@@ -128,11 +128,11 @@ int main() {
                     auto res = graph.roadDiameter();
                     auto t1 = sc::now();
                     auto ms = duration_cast<milliseconds>(t1 - t0).count();
-                    std::cout << "Estimated road diameter: " << std::fixed << std::setprecision(2)
+                    std::cout << "Diámetro vial estimado: " << std::fixed << std::setprecision(2)
                               << res.diameter << " m\n";
-                    std::cout << "  From Node ID: " << res.from_node << "\n";
-                    std::cout << "  To Node ID:   " << res.to_node << "\n";
-                    std::cout << "Time: " << ms << " ms\n";
+                    std::cout << "  Desde el ID del nodo: " << res.from_node << "\n";
+                    std::cout << "  Hasta el ID del nodo: " << res.to_node << "\n";
+                    std::cout << "Tiempo: " << ms << " ms\n";
                     break;
                 }
                 case 4: {
@@ -140,24 +140,24 @@ int main() {
                     double mst_km = graph.minimumSpanningTree();
                     auto t1 = sc::now();
                     auto ms = duration_cast<milliseconds>(t1 - t0).count();
-                    std::cout << "MST total distance: " << std::fixed << std::setprecision(2)
+                    std::cout << "Distancia total del MST: " << std::fixed << std::setprecision(2)
                               << mst_km << " km\n";
-                    std::cout << "Time: " << ms << " ms\n";
+                    std::cout << "Tiempo: " << ms << " ms\n";
                     break;
                 }
                 case 5: {
-                    std::cout << "Enter source node ID: ";
+                    std::cout << "Ingrese el ID del nodo origen: ";
                     int src;
                     if (!(std::cin >> src) || !graph.hasNode(src)) {
-                        std::cout << "Invalid source node ID.\n";
+                        std::cout << "ID del nodo origen no válido.\n";
                         std::cin.clear();
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                         break;
                     }
-                    std::cout << "Enter destination node ID: ";
+                    std::cout << "Ingrese el ID del nodo destino: ";
                     int dst;
                     if (!(std::cin >> dst) || !graph.hasNode(dst)) {
-                        std::cout << "Invalid destination node ID.\n";
+                        std::cout << "ID del nodo destino no válido.\n";
                         std::cin.clear();
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                         break;
@@ -166,10 +166,10 @@ int main() {
                     break;
                 }
                 case 6:
-                    std::cout << "Goodbye.\n";
+                    std::cout << "Adiós.\n";
                     break;
                 default:
-                    std::cout << "Invalid choice.\n";
+                    std::cout << "Opción no válida.\n";
             }
         } while (choice != 6);
 
