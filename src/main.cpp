@@ -86,21 +86,48 @@ int main() {
                 case 2: {
                     auto t0 = std::chrono::steady_clock::now();
                     auto comp = graph.weaklyConnectedComponents();
+                    
+                    long long total_nodes = graph.nodeCount();
+                    long long total_edges = graph.edgeCount();
+                    double total_avg_degree = total_nodes > 0 ? static_cast<double>(total_edges) / total_nodes : 0.0;
+
+                    long long giant_idx = comp.giant_component_idx;
+                    long long giant_nodes = comp.sizes[giant_idx];
+                    long long giant_edges = 0;
+                    for (int u = 0; u < graph.nodeCount(); ++u) {
+                        if (comp.component_id[static_cast<size_t>(u)] == giant_idx) {
+                            for (const auto& e : graph.adjacency()[static_cast<size_t>(u)]) {
+                                if (comp.component_id[static_cast<size_t>(e.to)] == giant_idx) {
+                                    giant_edges++;
+                                }
+                            }
+                        }
+                    }
+                    double giant_avg_degree = giant_nodes > 0 ? static_cast<double>(giant_edges) / giant_nodes : 0.0;
+                    
                     auto t1 = std::chrono::steady_clock::now();
                     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    
                     std::cout << "Number of islands (components): " << comp.sizes.size() << "\n";
-                    std::cout << "Giant component size: " << comp.sizes[static_cast<size_t>(comp.giant_component_idx)]
-                              << " nodes\n";
+                    std::cout << "Giant component size: " << giant_nodes << " nodes\n";
+                    std::cout << "----------------------------------------------------------\n";
+                    std::cout << "METRIC COMPARISON (Giant Component vs. Complete Filtered):\n";
+                    std::cout << "  Nodos:          " << giant_nodes << " vs. " << total_nodes << "\n";
+                    std::cout << "  Aristas:        " << giant_edges << " vs. " << total_edges << "\n";
+                    std::cout << "  Grado promedio: " << std::fixed << std::setprecision(4) << giant_avg_degree << " vs. " << total_avg_degree << "\n";
+                    std::cout << "----------------------------------------------------------\n";
                     std::cout << "Time: " << ms << " ms\n";
                     break;
                 }
                 case 3: {
                     auto t0 = std::chrono::steady_clock::now();
-                    double diam = graph.roadDiameter();
+                    auto res = graph.roadDiameter();
                     auto t1 = std::chrono::steady_clock::now();
                     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
                     std::cout << "Estimated road diameter: " << std::fixed << std::setprecision(2)
-                              << diam << " m\n";
+                              << res.diameter << " m\n";
+                    std::cout << "  From Node ID: " << res.from_node << "\n";
+                    std::cout << "  To Node ID:   " << res.to_node << "\n";
                     std::cout << "Time: " << ms << " ms\n";
                     break;
                 }

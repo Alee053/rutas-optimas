@@ -152,7 +152,7 @@ std::vector<double> Graph::dijkstra(int source,
         pq.pop();
         size_t uu = static_cast<size_t>(u);
         if (d > dist[uu]) continue;
-        if (max_distance >= 0.0 && d > max_distance) continue;
+        if (max_distance >= 0.0 && d > max_distance) break;
 
         for (const auto& e : adj_[uu]) {
             size_t eto = static_cast<size_t>(e.to);
@@ -233,7 +233,7 @@ ComponentInfo Graph::weaklyConnectedComponents() const {
     return info;
 }
 
-double Graph::roadDiameter() const {
+DiameterResult Graph::roadDiameter() const {
     auto comp = weaklyConnectedComponents();
     size_t n = adj_.size();
 
@@ -247,7 +247,7 @@ double Graph::roadDiameter() const {
             break;
         }
     }
-    if (!found) return 0.0;
+    if (!found) return {0.0, -1, -1};
 
     auto dist1 = dijkstra(start, -1.0, false, nullptr);
     int u = start;
@@ -264,16 +264,18 @@ double Graph::roadDiameter() const {
 
     auto dist2 = dijkstra(u, -1.0, false, nullptr);
     double diameter = 0.0;
+    int w = u;
     for (int v = 0; v < static_cast<int>(n); ++v) {
         size_t vv = static_cast<size_t>(v);
         if (comp.component_id[vv] == giant_idx && std::isfinite(dist2[vv])) {
             if (dist2[vv] > diameter) {
                 diameter = dist2[vv];
+                w = v;
             }
         }
     }
 
-    return diameter;
+    return {diameter, u, w};
 }
 
 double Graph::minimumSpanningTree() const {

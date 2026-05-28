@@ -7,7 +7,7 @@
 | Limpieza de datos (CSV parsing) | ✅ Done |
 | Construcción del grafo (adjacency list + auto-reverse) | ✅ Done |
 | Smoke test (end-to-end) | ✅ Done |
-| Algoritmos de análisis | ❌ Pending |
+| Algoritmos de análisis | ✅ Done |
 | Informe / Defensa | ❌ Pending |
 
 ---
@@ -45,33 +45,33 @@
 ## Fase 3: Algoritmos de Análisis
 
 ### 3.1 Alcance Vehicular (5 km)
-- [ ] BFS/DFS limitado por distancia acumulada (no euclidiana)
-- [ ] Dado nodo origen, contar nodos alcanzables en ≤ 5 km
-- [ ] Usar peso `distance_m` para acumulación
-- [ ] Reportar: cantidad de nodos alcanzables
+- [x] BFS/DFS limitado por distancia acumulada (no euclidiana) (Implementado vía Dijkstra cutoff de alto rendimiento)
+- [x] Dado nodo origen, contar nodos alcanzables en ≤ 5 km
+- [x] Usar peso `distance_m` para acumulación
+- [x] Reportar: cantidad de nodos alcanzables
 
 ### 3.2 Islas Viales (Componentes Débilmente Conexas)
-- [ ] DFS/BFS para encontrar componentes débilmente conexas
-- [ ] Identificar componente gigante (mayor cantidad de nodos)
-- [ ] Reportar: número de islas, tamaño de la componente gigante, grado promedio
-- [ ] Comparar con subgrafo filtrado si aplica
+- [x] DFS/BFS para encontrar componentes débilmente conexas (Implementado vía DFS iterativo bidireccional)
+- [x] Identificar componente gigante (mayor cantidad de nodos)
+- [x] Reportar: número de islas, tamaño de la componente gigante, grado promedio
+- [x] Comparar con subgrafo filtrado si aplica (Métricas detalladas del componente gigante vs complete filtrado)
 
 ### 3.3 Diámetro Vial (Grafo)
-- [ ] Encontrar par de nodos con mayor distancia mínima (en metros)
-- [ ] Dentro de la componente gigante
-- [ ] Algoritmo: BFS desde cada nodo (O(V*(V+E))) o APSP optimizado
-- [ ] Reportar: distancia en metros, nodos origen/destino
+- [x] Encontrar par de nodos con mayor distancia mínima (en metros)
+- [x] Dentro de la componente gigante
+- [x] Algoritmo: BFS desde cada nodo (O(V*(V+E))) o APSP optimizado (Implementado via Dijkstra de doble barrido extremadamente eficiente)
+- [x] Reportar: distancia en metros, nodos origen/destino
 
 ### 3.4 Red de Emergencia Mínima (MST)
-- [ ] Construir MST sobre la componente gigante
-- [ ] Algoritmo: Prim o Kruskal
-- [ ] Usar peso `distance_m`
-- [ ] Reportar: distancia total cubierta en km
+- [x] Construir MST sobre la componente gigante
+- [x] Algoritmo: Prim o Kruskal (Implementado vía Kruskal con Union-Find y deduplicación de aristas)
+- [x] Usar peso `distance_m`
+- [x] Reportar: distancia total cubierta en km
 
 ### 3.5 (BONUS) Ruta por Tipo de Horario
-- [ ] Comparar camino más corto por distancia (d) vs tiempo (t)
-- [ ] Dado par de nodos, ejecutar Dijkstra con peso `weight` y con peso `time_weight`
-- [ ] Analizar diferencias en ruta resultado
+- [x] Comparar camino más corto por distancia (d) vs tiempo (t)
+- [x] Dado par de nodos, ejecutar Dijkstra con peso `weight` y con peso `time_weight`
+- [x] Analizar diferencias en ruta resultado
 
 ---
 

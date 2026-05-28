@@ -24,6 +24,12 @@ struct ComponentInfo {
     long long giant_component_idx = 0;
 };
 
+struct DiameterResult {
+    double diameter;
+    int from_node;
+    int to_node;
+};
+
 class Graph {
 public:
     static Graph build(const std::vector<ParsedNode>& nodes,
@@ -47,7 +53,7 @@ public:
 
     ComponentInfo weaklyConnectedComponents() const;
 
-    double roadDiameter() const;
+    DiameterResult roadDiameter() const;
 
     // Build MST on the giant component. Returns total weight in kilometers.
     double minimumSpanningTree() const;
