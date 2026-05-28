@@ -5,6 +5,10 @@
 #include "csv_parser.h"
 #include "graph.h"
 
+using sc = std::chrono::steady_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+
 static void printMenu() {
     std::cout << "\n=== Bolivia Road Network Analysis ===\n"
               << "1. Vehicle Reach              — count nodes within 5 km of a source\n"
@@ -70,10 +74,10 @@ int main() {
                     std::cout << "Enter source node ID: ";
                     int src;
                     if (std::cin >> src && graph.hasNode(src)) {
-                        auto t0 = std::chrono::steady_clock::now();
+                        auto t0 = sc::now();
                         long long reach = graph.vehicleReach(src);
-                        auto t1 = std::chrono::steady_clock::now();
-                        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                        auto t1 = sc::now();
+                        auto ms = duration_cast<milliseconds>(t1 - t0).count();
                         std::cout << "Nodes reachable within 5 km: " << reach
                                   << " (time: " << ms << " ms)\n";
                     } else {
@@ -84,7 +88,7 @@ int main() {
                     break;
                 }
                 case 2: {
-                    auto t0 = std::chrono::steady_clock::now();
+                    auto t0 = sc::now();
                     auto comp = graph.weaklyConnectedComponents();
                     
                     long long total_nodes = graph.nodeCount();
@@ -105,8 +109,8 @@ int main() {
                     }
                     double giant_avg_degree = giant_nodes > 0 ? static_cast<double>(giant_edges) / giant_nodes : 0.0;
                     
-                    auto t1 = std::chrono::steady_clock::now();
-                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    auto t1 = sc::now();
+                    auto ms = duration_cast<milliseconds>(t1 - t0).count();
                     
                     std::cout << "Number of islands (components): " << comp.sizes.size() << "\n";
                     std::cout << "Giant component size: " << giant_nodes << " nodes\n";
@@ -120,10 +124,10 @@ int main() {
                     break;
                 }
                 case 3: {
-                    auto t0 = std::chrono::steady_clock::now();
+                    auto t0 = sc::now();
                     auto res = graph.roadDiameter();
-                    auto t1 = std::chrono::steady_clock::now();
-                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    auto t1 = sc::now();
+                    auto ms = duration_cast<milliseconds>(t1 - t0).count();
                     std::cout << "Estimated road diameter: " << std::fixed << std::setprecision(2)
                               << res.diameter << " m\n";
                     std::cout << "  From Node ID: " << res.from_node << "\n";
@@ -132,10 +136,10 @@ int main() {
                     break;
                 }
                 case 4: {
-                    auto t0 = std::chrono::steady_clock::now();
+                    auto t0 = sc::now();
                     double mst_km = graph.minimumSpanningTree();
-                    auto t1 = std::chrono::steady_clock::now();
-                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    auto t1 = sc::now();
+                    auto ms = duration_cast<milliseconds>(t1 - t0).count();
                     std::cout << "MST total distance: " << std::fixed << std::setprecision(2)
                               << mst_km << " km\n";
                     std::cout << "Time: " << ms << " ms\n";

@@ -11,6 +11,10 @@
 #include <iostream>
 #include <iomanip>
 
+using sc = std::chrono::steady_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+
 namespace {
 struct UnionFind {
     std::vector<int> parent;
@@ -342,7 +346,7 @@ void Graph::compareRoutes(int src, int dst) const {
         std::cout << "Invalid node ID(s)." << std::endl;
         return;
     }
-    auto start = std::chrono::steady_clock::now();
+    auto start = sc::now();
 
     std::vector<int> prev_d;
     auto dist_d = dijkstra(src, -1.0, false, &prev_d);
@@ -350,8 +354,8 @@ void Graph::compareRoutes(int src, int dst) const {
     std::vector<int> prev_t;
     auto dist_t = dijkstra(src, -1.0, true, &prev_t);
 
-    auto end = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    auto end = sc::now();
+    auto ms = duration_cast<milliseconds>(end - start).count();
 
     auto reconstruct = [](const std::vector<int>& prev, int s, int t) {
         std::vector<int> path;
