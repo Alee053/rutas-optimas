@@ -342,7 +342,6 @@ void Graph::compareRoutes(int src, int dst) const {
         std::cout << "Invalid node ID(s)." << std::endl;
         return;
     }
-
     auto start = std::chrono::steady_clock::now();
 
     std::vector<int> prev_d;
